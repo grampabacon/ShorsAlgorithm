@@ -19,7 +19,7 @@ class QuantumState:
     :param state - the state being entangled with.
     :param amplitude - probability of finding this state in the entanglement.
     """
-    def set_entangled(self, state, amplitude):
+    def entangle(self, state, amplitude):
         register = state.register
         entanglement = QuantumMap(state, amplitude)
 
@@ -33,7 +33,7 @@ class QuantumState:
 
         :param register - the register of the state to find the length of. Default: None.
     """
-    def get_number_entangled_states(self, register=None):
+    def get_entangled_states_length(self, register=None):
         entangled = 0
         if register is None:
             for states in self.entangled.values():
