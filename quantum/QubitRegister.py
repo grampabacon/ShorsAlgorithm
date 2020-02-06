@@ -8,9 +8,9 @@ class QubitRegister:
     """
 
     """
-    def __init__(self, numBits):
-        self.numBits = numBits
-        self.numStates = 1 << numBits
+    def __init__(self, num_bits):
+        self.numBits = num_bits
+        self.numStates = 1 << num_bits
         self.entangled = []
         self.states = [QuantumState(complex(0.0), self) for x in range(self.numStates)]
         self.states[0].amplitude = complex(1.0)
