@@ -23,7 +23,7 @@ class QubitRegister:
             for state in self.states:
                 amplitude = complex(0.0)
                 try:
-                    entangles = state.entangled[register]
+                    entangles = state.entangled_state[register]
                     for entangle in entangles:
                         amplitude += entangle.state.amplitude * entangle.amplitude
                     state.amplitude = amplitude
@@ -113,7 +113,7 @@ class QubitRegister:
     def get_entangled(self, register=None):
         entangled = 0
         for state in self.states:
-            entangled += state.entangled(None)
+            entangled += state.get_entangled_states_length(None)
 
         return entangled
 

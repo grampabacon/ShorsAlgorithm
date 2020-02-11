@@ -11,7 +11,7 @@ class QuantumState:
     def __init__(self, amplitude, register):
         self.amplitude = amplitude
         self.register = register
-        self.entangled = {}
+        self.entangled_state = {}
 
     """
     Set the state entangled to another.
@@ -22,11 +22,10 @@ class QuantumState:
     def entangle(self, state, amplitude):
         register = state.register
         entanglement = QuantumMap(state, amplitude)
-
         try:
-            self.entangled[register].append(entanglement)
+            self.entangled_state[register].append(entanglement)
         except KeyError:
-            self.entangled[register] = [entanglement]
+            self.entangled_state[register] = [entanglement]
 
     """
         Returns the length of entangled states list.
@@ -36,8 +35,8 @@ class QuantumState:
     def get_entangled_states_length(self, register=None):
         entangled = 0
         if register is None:
-            for states in self.entangled.values():
+            for states in self.entangled_state.values():
                 entangled += len(states)
         else:
-            entangled = len(self.entangled[register])
+            entangled = len(self.entangled_state[register])
         return entangled

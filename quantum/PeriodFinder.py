@@ -36,6 +36,7 @@ def find_period(a, N):
     print_info("Performing QFT.")
 
     hadamard_input_register.map(qft_input_register, lambda x: quantum_fourier_transform(x, q), False)
+    input_register.propagate()
 
     print_info("Performed QFT")
     print_info("Measuring output qubit register.")

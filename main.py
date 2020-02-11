@@ -88,9 +88,9 @@ def run_shors(N, attempts=1, neighbourhood=0.0, num_periods=1):
             a = pick_a(N)
 
         divisor = greatest_common_divisor(a, N)
-        #if divisor > 1:
-        #    print_info("Found factor classically, retry.")
-        #    continue
+        if divisor > 1:
+            print_info("Found factor classically, retry.")
+            continue
 
         period = find_period(a, N)
 
@@ -117,7 +117,7 @@ def run_shors(N, attempts=1, neighbourhood=0.0, num_periods=1):
         if len(periods) < num_periods:
             continue
 
-        print_info("\nFinding least common multiple of found periods.")
+        print_info("\nFinding greatest common divisor of found periods.")
 
         period = 1
         for r in periods:
