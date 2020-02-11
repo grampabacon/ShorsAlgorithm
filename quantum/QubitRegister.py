@@ -9,10 +9,10 @@ class QubitRegister:
 
     """
     def __init__(self, num_bits):
-        self.numBits = num_bits
-        self.numStates = 1 << num_bits
+        self.num_bits = num_bits
+        self.num_states = 1 << num_bits
         self.entangled = []
-        self.states = [QuantumState(complex(0.0), self) for x in range(self.numStates)]
+        self.states = [QuantumState(complex(0.0), self) for x in range(self.num_states)]
         self.states[0].amplitude = complex(1.0)
 
     """
@@ -29,10 +29,10 @@ class QubitRegister:
                     state.amplitude = amplitude
                 except KeyError:
                     state.amplitude = amplitude
-        for register in self.entangled:
-            if register is register:
+        for qr in self.entangled:
+            if qr is register:
                 continue
-            register.propagate(self)
+            qr.propagate(self)
 
     """
     This method sets the normalized tensorX and Y lists.
@@ -46,7 +46,7 @@ class QubitRegister:
         # Create covariant / contravariant representations
         map_tensor_x = {}
         map_tensor_y = {}
-        for x in range(self.numStates):
+        for x in range(self.num_states):
             map_tensor_x[x] = {}
             codomain = mapping(x)
             for element in codomain:

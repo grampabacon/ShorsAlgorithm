@@ -1,4 +1,4 @@
-from quantum.QuantumMap import QuantumMap
+from Mapping import QuantumMap
 
 
 class QuantumState:

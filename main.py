@@ -1,27 +1,16 @@
 import argparse
 import math
+import random
+import util.ConsoleMessenger as cm
 
-from quantum.Mapping import QuantumMap
-from quantum.QubitRegister import QubitRegister
+from classical.ModularExponentiation import modular_exponentiation
+from quantum.PeriodFinder import find_period
+from util.ConsoleMessenger import print_info
+from classical.GreatestCommonDivisor import greatest_common_divisor
 
 # Disallow running the algorithm with too long a number that would take too long to compute TODO: Determine value
 BIT_MAXIMUM = 20
 
-
-#######################
-# Classical Functions #
-#######################
-def bit_count(x):
-    sum_bits = 0
-    while x > 0:
-        sum_bits += x & 1
-        x >>= 1
-
-    return sum_bits
-
-
-
-def
 
 #########################
 # Quantum Data Printing #
@@ -37,81 +26,9 @@ def print_amplitudes(register):
 
 
 #################
-# Quantum Gates #
+# Console Input #
 #################
-
-"""
-q: input quantum bit.
-"""
-def hadamard(x, q):
-    codomain = []
-    for y in range(q):
-        amplitude = complex(pow(-1.0, bit_count(x & y) & 1))
-        codomain.append(QuantumMap(y, amplitude))
-
-    return codomain
-
-
-def quantum_modular_exponentiation(a, exp, mod):
-    state = modular_exponentiation(a, exp, mod)
-    amplitude = complex(1.0)
-
-    return [QuantumMap(state, amplitude)]
-
-
-def quantum_fourier_transform(x, q):
-    float_q = float(q)
-    k = -2.0 * math.pi
-    codomain = []
-
-    for y in range(q):
-        angle = (k * float((x * y) % q)) / float_q
-        amplitude = complex(math.cos(angle), math.sin(angle))
-        codomain.append(QuantumMap(y, amplitude))
-
-    return codomain
-
-
-def find_period(a, N):
-    number_bit_length = N.bit_length()
-
-    input_qubits = (2 * number_bit_length) - 1
-    input_qubits += 1 if ((1 << input_qubits) < (N * N)) else 0
-
-    q = 1 << input_qubits
-
-    print_info("Finding the period of the state...")
-    print_info("Q = " + str(q) + "\ta = " + str(a))
-
-    input_register = QubitRegister(input_qubits)
-    hadamard_input_register = QubitRegister(input_qubits)
-    qft_input_register = QubitRegister(input_qubits)
-    output_register = QubitRegister(input_qubits)
-
-    print_info("Registers created.")
-    print_info("Performing Hadamard gate on input register.")
-
-    input_register.map(hadamard_input_register, lambda x: hadamard(x, q), False)
-
-    print_info("Hadamard performed.")
-    print_info("Hadamard performed.")
-
-
-###############################
-# Command Line Functionality. #
-###############################
-def print_none(string):
-    pass
-
-
-def print_verbose(string):
-    print(string)
-
-
-print_info = print_none
-
-
-def parseArgs():
+def parse_args():
     parser = argparse.ArgumentParser(description='Simulate Shor\'s algorithm for N.')
     parser.add_argument('-a', '--attempts', type=int, default=20, help='Number of quantum attempts to perform')
     parser.add_argument('-n', '--neighborhood', type=float, default=0.01, help='Neighborhood size for checking candidates (as percentage of N)')
@@ -121,15 +38,110 @@ def parseArgs():
     return parser.parse_args()
 
 
+#############
+# Algorithm #
+#############
+def pick_a(N):
+    a = math.floor((random.random() * (N - 1)) + 0.5)
+    return a
+
+
+def check_candidates(a, period, N, neighbourhood):
+    if period is None:
+        return None
+
+    # Check multiples
+    for i in range(1, neighbourhood + 2):
+        _r = i * period
+        if modular_exponentiation(a, a, N) == modular_exponentiation(a, a + _r, N):
+            return _r
+
+    # Check lower neighbourhood bound
+    for j in range(period - neighbourhood, period):
+        if modular_exponentiation(a, a, N) == modular_exponentiation(a, a + j, N):
+            return j
+
+    # Check upper neighbourhood bound
+    for k in range(period + 1, period + neighbourhood + 1):
+        if modular_exponentiation(a, a, N) == modular_exponentiation(a, a + k, N):
+            return k
+
+    return None
+
+
+def run_shors(N, attempts=1, neighbourhood=0.0, num_periods=1):
+    if N.bit_length() > BIT_MAXIMUM or N < 3:
+        return False
+
+    periods = []
+    neighbourhood = math.floor(N * neighbourhood) + 1
+
+    print_info("N = " + str(N))
+    print_info("Neighborhood = " + str(neighbourhood))
+    print_info("Number of periods = " + str(num_periods))
+
+    for attempt in range(attempts):
+        print_info("\nAttempt " + str(attempt))
+
+        a = pick_a(N)
+        while a < 2:
+            a = pick_a(N)
+
+        divisor = greatest_common_divisor(a, N)
+        #if divisor > 1:
+        #    print_info("Found factor classically, retry.")
+        #    continue
+
+        period = find_period(a, N)
+
+        print_info("Checking candidate period, nearby values, and multiples")
+
+        period = check_candidates(a, period, N, neighbourhood)
+
+        if period is None:
+            print_info("No period found, retry.")
+            continue
+
+        if (period % 2) != 0:
+            print_info("Period was odd, retry.")
+            continue
+
+        divisor = modular_exponentiation(a, period // 2, N)
+        if period == 0 or divisor == (N - 1):
+            print_info("Period was trivial, retry.")
+            continue
+
+        print_info("Found period = " + str(period))
+
+        periods.append(period)
+        if len(periods) < num_periods:
+            continue
+
+        print_info("\nFinding least common multiple of found periods.")
+
+        period = 1
+        for r in periods:
+            divisor = greatest_common_divisor(r, period)
+            period = (period * r) // divisor
+
+        b = modular_exponentiation(a, period // 2, N)
+        return [greatest_common_divisor(N, b + 1), greatest_common_divisor(N, b - 1)]
+
+    return None
+
+
 def main():
-    args = parseArgs()
+    args = parse_args()
 
-    global printInfo
     if args.verbose:
-        printInfo = print_verbose
+        cm.print_info = cm.print_verbose
     else:
-        printInfo = print_none
+        cm.print_info = cm.print_none
 
-    factors = shors(args.N, args.attempts, args.neighborhood, args.periods)
+    factors = run_shors(args.N, args.attempts, args.neighborhood, args.periods)
     if factors is not None:
-        print("Factors:\t" + str(factors[0]) + ", " + str(factors[1]))
+        # print("Factors:\t" + str(factors[0]) + ", " + str(factors[1]))
+        print("Factors:\t" + str(factors).strip("[]"))
+
+
+print(run_shors(35, 10, 0.01, 2))
