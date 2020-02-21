@@ -35,27 +35,24 @@ class Encryption:
         return 1
 
     # This function creates one part of the private key, which is used to decrypt the message. The private key is formed from the numbers N and x.
-    def encryption(self):
-        mylist = [8, 5, 12, 12, 15]
+    def encryption(self, list_message):
         r = []
-        for b in mylist:
+        for b in list_message:
             c = (b ** self.derived_number()) % self.productofprimes(5, 7)
             r.append(c)
-        print(r)
         return r
 
     # This function uses numbers to encrypt messages. In this case, numbers correspond to letters, a=1,b=2,c=3 etc.
-    def decryption(self):
+    def decryption(self, encrypted_list):
         x = 5
-        encrypted_list = self.encryption()
         t = []
         for y in encrypted_list:
             f = (y ** x % self.productofprimes(5, 7))
             t.append(f)
-        print(t)
+        return t
 
 
-instance = Encryption()
-instance.encryption()
-instance.privatekey()
-instance.decryption()
+# instance = Encryption()
+# instance.encryption()
+# instance.privatekey()
+# instance.decryption()
