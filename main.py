@@ -70,6 +70,14 @@ def check_candidates(a, period, N, neighbourhood):
 
 
 def run_shors(N, attempts=1, neighbourhood=0.0, num_periods=1):
+    """
+    Runs the classical implementation of Shors algorithm and returns the found prime factors.
+
+    :param N: The number to factorise.
+    :param attempts: The number of times to run the function per test. Default = 1.
+    :param neighbourhood: The range of values to check around the output qubit register, as a % of N. Default = 0.0.
+    :param num_periods: The number of successful tests of the function required before the greatest common divisor of the results is found. Default = 1.
+    """
     if N.bit_length() > BIT_MAXIMUM or N < 3:
         return False
 
@@ -144,4 +152,4 @@ def main():
         print("Factors:\t" + str(factors).strip("[]"))
 
 
-print(run_shors(35, 10, 0.01, 2))
+print(run_shors(35, 20, 0.2, 2))
