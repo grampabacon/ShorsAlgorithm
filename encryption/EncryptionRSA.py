@@ -5,6 +5,21 @@ from util.PrimeChecker import is_prime_miller_rabin
 
 class RSAEncryption:
 
+    MAX_PRIME_LENGTH = 30
+
+    def generate_random_prime(self):
+        while True:
+            random_prime = random.randint(10, self.MAX_PRIME_LENGTH)
+            if self.is_prime(random_prime):
+                return random_prime
+
+    def generate_pq(self):
+        p = self.generate_random_prime()
+        q = self.generate_random_prime()
+        while p == q:
+            q = self.generate_random_prime()
+        return p, q
+
     def is_prime(self, n):
         # low_primes is all primes (sans 2, which is covered by the bitwise and operator)
         # under 1000. taking n modulo each low Prime allows us to remove a huge chunk
@@ -71,12 +86,15 @@ class RSAEncryption:
                 exit = True
         return int(d)
 
-    def generate_keypair(self, p, q):
+    def generate_keypair(self, p=0, q=0):
+        if p == 0 or q == 0:
+            p, q = self.generate_pq()
         if not (self.is_prime(p) and self.is_prime(q)):
             raise ValueError('Both numbers must be prime.')
         elif p == q:
             raise ValueError('p and q cannot be equal')
-        # n = pq
+
+        print("p: " + str(p) + "\nq: " + str(q))
         n = p * q
 
         # Phi is the totient of n
@@ -98,23 +116,29 @@ class RSAEncryption:
         # Public key is (e, n) and private key is (d, n)
         return (e, n), (d, n)
 
-    def encrypt(pk, plaintext):
+    def encrypt(self, public_key, plain_text):
         # Unpack the key into it's components
-        key, n = pk
+        e, n = public_key
         # Convert each letter in the plaintext to numbers based on the character using a^b mod m
-        cipher = [pow(ord(char) + i, key, n) for i, char in enumerate(plaintext)]
+        cipher = [pow(ord(char) - i, e, n) for i, char in enumerate(plain_text)]
         # Return the array of bytes
         return cipher
 
-    def decrypt(pk, ciphertext):
+    def decrypt(self, private_key, cipher_text):
         # Unpack the key into its components
-        key, n = pk
+        d, n = private_key
         # Generate the plaintext based on the ciphertext and key using a^b mod m
-        plain = [chr(pow(char, key, n) - i) for i, char in enumerate(ciphertext)]
+        plain = [chr(pow(char, d, n) + i) for i, char in enumerate(ciphertext)]
         # Return the array of bytes as a string
         return ''.join(plain)
 
 
 instance = RSAEncryption()
-public, private = instance.generate_keypair(5, 7)
-print("Public: " + str(public) + ". Private: " + str(private))
+public, private = instance.generate_keypair()
+print("Public key: " + str(public) + "\nPrivate key: " + str(private))
+
+ciphertext = instance.encrypt(public, "Hello, world!")
+print("Cipher text: " + str(ciphertext))
+
+plaintext = instance.decrypt(private, ciphertext)
+print("Plain text: " + str(plaintext))
